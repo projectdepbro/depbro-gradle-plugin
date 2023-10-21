@@ -1,10 +1,24 @@
 plugins {
-    id 'java'
+    id 'com.gradle.plugin-publish' version '1.2.1'
 }
 
 group = 'io.github.projectdepbro'
 version = '0.1.0-SNAPSHOT'
-description = 'Gradle plugin for working with DepBro.'
+description = 'Gradle plugin for working with DepBro (dependency broker).'
+
+gradlePlugin {
+    website = 'https://github.com/projectdepbro/depbro-gradle-plugin'
+    vcsUrl = 'https://github.com/projectdepbro/depbro-gradle-plugin.git'
+    plugins {
+        depbroPlugin {
+            id = 'io.github.projectdepbro'
+            displayName = 'DepBro Gradle Plugin'
+            description = 'Plugin for working with DepBro (dependency broker).'
+            tags.addAll('dependency', 'broker', 'microservice')
+            implementationClass = 'io.github.projectdepbro.gradle.plugin.DepBroPlugin'
+        }
+    }
+}
 
 java {
     sourceCompatibility = '17'
@@ -28,4 +42,47 @@ repositories {
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications.withType(MavenPublication).configureEach {
+        pom {
+            name = 'DepBro Gradle Plugin'
+            url = 'https://github.com/projectdepbro/depbro-gradle-plugin'
+            licenses {
+                license {
+                    name = 'Apache License, Version 2.0'
+                    url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                    distribution = 'repo'
+                }
+            }
+            developers {
+                developer {
+                    id = 'alexengrig'
+                    name = 'Grig Alex'
+                    email = 'alexengrigdev@gmail.com'
+                }
+            }
+            issueManagement {
+                url = 'https://github.com/projectdepbro/depbro-gradle-plugin/issues'
+                system = 'GitHub Issues'
+            }
+            ciManagement {
+                url = 'https://github.com/projectdepbro/depbro-gradle-plugin/actions'
+                system = 'GitHub Actions'
+            }
+            scm {
+                connection = "scm:git:https://github.com/projectdepbro/depbro-gradle-plugin.git"
+                developerConnection = "scm:git:https://github.com/projectdepbro/depbro-gradle-plugin.git"
+                url = 'https://github.com/projectdepbro/depbro-gradle-plugin'
+            }
+        }
+    }
+    afterEvaluate {
+        publications.named('pluginMaven') {
+            pom {
+                description = project.description
+            }
+        }
+    }
 }
