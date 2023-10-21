@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.projectdepbro'
+version = '0.1.0-SNAPSHOT'
+description = 'Gradle plugin for working with DepBro.'
+
+java {
+    sourceCompatibility = '17'
+    withSourcesJar()
+    withJavadocJar()
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'The Project DepBro Authors'
+        )
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+}
