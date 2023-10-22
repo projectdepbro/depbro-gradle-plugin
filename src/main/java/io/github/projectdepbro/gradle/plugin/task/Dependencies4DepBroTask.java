@@ -16,14 +16,17 @@
 
 package io.github.projectdepbro.gradle.plugin.task;
 
+import io.github.projectdepbro.gradle.plugin.DepBroExtension;
+import io.github.projectdepbro.gradle.plugin.collector.DependencyCollector;
+import io.github.projectdepbro.gradle.plugin.filter.DependencyFilter;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskContainer;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
 
 public class Dependencies4DepBroTask extends DefaultTask {
 
@@ -42,31 +45,28 @@ public class Dependencies4DepBroTask extends DefaultTask {
     @TaskAction
     public void display() {
         Project project = getProject();
-        ConfigurationContainer configurations = project.getConfigurations();
-        configurations.configureEach(this::displayConfiguration);
+        DepBroExtension extension = project.getExtensions().getByType(DepBroExtension.class);
+        DependencyFilter dependencyFilter = getDependencyFilter(extension);
+        DependencyCollector dependencyCollector = new DependencyCollector(dependencyFilter);
+        Set<String> dependencies = dependencyCollector.collectDependencies(project);
+        System.out.println(String.join(System.lineSeparator(), dependencies));
     }
 
-    private void displayConfiguration(Configuration configuration) {
-        String configurationName = configuration.getName();
-        DependencySet dependencies = configuration.getDependencies();
-        if (dependencies.isEmpty()) return;
-        int numberOfDependencies = dependencies.size();
-        System.out.println("Configuration '" + configurationName +
-                           "' has " + numberOfDependencies +
-                           " " + (numberOfDependencies > 1 ? "dependencies" : "dependency") +
-                           ":");
-        dependencies.configureEach(this::displayDependency);
-    }
-
-    private void displayDependency(Dependency dependency) {
-        String inlineDependency;
-        String version = dependency.getVersion();
-        if (version != null && !version.isBlank()) {
-            inlineDependency = dependency.getGroup() + ":" + dependency.getName() + ":" + version;
-        } else {
-            inlineDependency = dependency.getGroup() + ":" + dependency.getName();
+    @Nullable
+    private DependencyFilter getDependencyFilter(DepBroExtension extension) {
+        DependencyFilter dependencyFilter = null;
+        List<String> groupRegexes = extension.getIncludedGroupRegexes().getOrNull();
+        if (groupRegexes != null && !groupRegexes.isEmpty()) {
+            if (groupRegexes.size() == 1) {
+                dependencyFilter = DependencyFilter.ofGroupRegex(groupRegexes.get(0));
+            } else {
+                dependencyFilter = groupRegexes.stream()
+                        .map(DependencyFilter::ofGroupRegex)
+                        .reduce(DependencyFilter::and)
+                        .orElseThrow(() -> new IllegalStateException("Number of filter must be > 1"));
+            }
         }
-        System.out.println(inlineDependency);
+        return dependencyFilter;
     }
 
 }
