@@ -17,6 +17,7 @@
 package io.github.projectdepbro.gradle.plugin;
 
 import io.github.projectdepbro.gradle.plugin.task.Dependencies4DepBroTask;
+import io.github.projectdepbro.gradle.plugin.task.RegistrationDependencies4DepBroTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
@@ -27,6 +28,7 @@ public class DepBroPlugin implements Plugin<Project> {
     public void apply(Project project) {
         DepBroExtension.create(project);
         Dependencies4DepBroTask.register(project);
+        RegistrationDependencies4DepBroTask.register(project);
     }
 
 }

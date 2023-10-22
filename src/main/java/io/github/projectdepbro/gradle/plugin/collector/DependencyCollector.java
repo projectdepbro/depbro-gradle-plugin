@@ -16,6 +16,7 @@
 
 package io.github.projectdepbro.gradle.plugin.collector;
 
+import io.github.projectdepbro.gradle.plugin.DepBroExtension;
 import io.github.projectdepbro.gradle.plugin.filter.ConfigurationFilter;
 import io.github.projectdepbro.gradle.plugin.filter.DependencyFilter;
 import org.gradle.api.Project;
@@ -24,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,8 +35,8 @@ public class DependencyCollector {
     private final ConfigurationFilter configurationFilter;
     private final DependencyFilter dependencyFilter;
 
-    public DependencyCollector(@Nullable DependencyFilter dependencyFilter) {
-        this(null, dependencyFilter);
+    public DependencyCollector(Project project) {
+        this(null, getDependencyFilter(project));
     }
 
     public DependencyCollector(
@@ -43,6 +45,24 @@ public class DependencyCollector {
     ) {
         this.configurationFilter = configurationFilter;
         this.dependencyFilter = dependencyFilter;
+    }
+
+    @Nullable
+    private static DependencyFilter getDependencyFilter(Project project) {
+        DepBroExtension extension = project.getExtensions().getByType(DepBroExtension.class);
+        DependencyFilter dependencyFilter = null;
+        List<String> groupRegexes = extension.getDeps().getIncludedGroupRegexes().getOrNull();
+        if (groupRegexes != null && !groupRegexes.isEmpty()) {
+            if (groupRegexes.size() == 1) {
+                dependencyFilter = DependencyFilter.ofGroupRegex(groupRegexes.get(0));
+            } else {
+                dependencyFilter = groupRegexes.stream()
+                        .map(DependencyFilter::ofGroupRegex)
+                        .reduce(DependencyFilter::and)
+                        .orElseThrow(() -> new IllegalStateException("Number of 'includedGroupRegexes' must be > 1"));
+            }
+        }
+        return dependencyFilter;
     }
 
     public Set<String> collectDependencies(Project project) {
@@ -61,11 +81,10 @@ public class DependencyCollector {
 
     private String getInlineDependency(Dependency dependency) {
         String version = dependency.getVersion();
-        if (version != null && !version.isBlank()) {
-            return dependency.getGroup() + ":" + dependency.getName() + ":" + version;
-        } else {
-            return dependency.getGroup() + ":" + dependency.getName();
+        if (version == null || version.isBlank()) {
+            version = "unspecified";
         }
+        return dependency.getGroup() + ":" + dependency.getName() + ":" + version;
     }
 
 }

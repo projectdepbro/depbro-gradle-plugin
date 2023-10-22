@@ -16,16 +16,12 @@
 
 package io.github.projectdepbro.gradle.plugin.task;
 
-import io.github.projectdepbro.gradle.plugin.DepBroExtension;
 import io.github.projectdepbro.gradle.plugin.collector.DependencyCollector;
-import io.github.projectdepbro.gradle.plugin.filter.DependencyFilter;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskContainer;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 public class Dependencies4DepBroTask extends DefaultTask {
@@ -45,28 +41,9 @@ public class Dependencies4DepBroTask extends DefaultTask {
     @TaskAction
     public void display() {
         Project project = getProject();
-        DepBroExtension extension = project.getExtensions().getByType(DepBroExtension.class);
-        DependencyFilter dependencyFilter = getDependencyFilter(extension);
-        DependencyCollector dependencyCollector = new DependencyCollector(dependencyFilter);
+        DependencyCollector dependencyCollector = new DependencyCollector(project);
         Set<String> dependencies = dependencyCollector.collectDependencies(project);
         System.out.println(String.join(System.lineSeparator(), dependencies));
-    }
-
-    @Nullable
-    private DependencyFilter getDependencyFilter(DepBroExtension extension) {
-        DependencyFilter dependencyFilter = null;
-        List<String> groupRegexes = extension.getDeps().getIncludedGroupRegexes().getOrNull();
-        if (groupRegexes != null && !groupRegexes.isEmpty()) {
-            if (groupRegexes.size() == 1) {
-                dependencyFilter = DependencyFilter.ofGroupRegex(groupRegexes.get(0));
-            } else {
-                dependencyFilter = groupRegexes.stream()
-                        .map(DependencyFilter::ofGroupRegex)
-                        .reduce(DependencyFilter::and)
-                        .orElseThrow(() -> new IllegalStateException("Number of 'includedGroupRegexes' must be > 1"));
-            }
-        }
-        return dependencyFilter;
     }
 
 }
