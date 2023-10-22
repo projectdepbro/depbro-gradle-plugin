@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -29,17 +30,28 @@ import java.util.List;
 public class DepBroExtension implements Serializable {
 
     public static final String NAME = "depbro";
+    private final Property<String> url;
+    private final Deps deps;
+
+    @Inject
+    public DepBroExtension(ObjectFactory objects) {
+        this.url = objects.property(String.class)
+                .convention("http://localhost:3820");
+        this.deps = objects.newInstance(Deps.class);
+    }
 
     public static void create(Project project) {
         ExtensionContainer extensions = project.getExtensions();
         extensions.create(NAME, DepBroExtension.class);
     }
 
-    private final Deps deps;
+    public Property<String> getUrl() {
+        return this.url;
+    }
 
-    @Inject
-    public DepBroExtension(ObjectFactory objects) {
-        this.deps = objects.newInstance(Deps.class);
+    @SuppressWarnings("unused")
+    public void setUrl(String url) {
+        this.url.set(url);
     }
 
     public Deps getDeps() {
