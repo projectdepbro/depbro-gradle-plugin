@@ -55,7 +55,7 @@ public class Dependencies4DepBroTask extends DefaultTask {
     @Nullable
     private DependencyFilter getDependencyFilter(DepBroExtension extension) {
         DependencyFilter dependencyFilter = null;
-        List<String> groupRegexes = extension.getIncludedGroupRegexes().getOrNull();
+        List<String> groupRegexes = extension.getDeps().getIncludedGroupRegexes().getOrNull();
         if (groupRegexes != null && !groupRegexes.isEmpty()) {
             if (groupRegexes.size() == 1) {
                 dependencyFilter = DependencyFilter.ofGroupRegex(groupRegexes.get(0));
@@ -63,7 +63,7 @@ public class Dependencies4DepBroTask extends DefaultTask {
                 dependencyFilter = groupRegexes.stream()
                         .map(DependencyFilter::ofGroupRegex)
                         .reduce(DependencyFilter::and)
-                        .orElseThrow(() -> new IllegalStateException("Number of filter must be > 1"));
+                        .orElseThrow(() -> new IllegalStateException("Number of 'includedGroupRegexes' must be > 1"));
             }
         }
         return dependencyFilter;

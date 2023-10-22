@@ -16,19 +16,59 @@
 
 package io.github.projectdepbro.gradle.plugin;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
 
-public interface DepBroExtension {
+import javax.inject.Inject;
+import java.io.Serializable;
+import java.util.List;
 
-    String NAME = "depbro";
+public class DepBroExtension implements Serializable {
 
-    static void create(Project project) {
+    public static final String NAME = "depbro";
+
+    public static void create(Project project) {
         ExtensionContainer extensions = project.getExtensions();
         extensions.create(NAME, DepBroExtension.class);
     }
 
-    ListProperty<String> getIncludedGroupRegexes();
+    private final Deps deps;
+
+    @Inject
+    public DepBroExtension(ObjectFactory objects) {
+        this.deps = objects.newInstance(Deps.class);
+    }
+
+    public Deps getDeps() {
+        return this.deps;
+    }
+
+    @SuppressWarnings("unused")
+    public void deps(Action<Deps> action) {
+        action.execute(this.deps);
+    }
+
+    public static class Deps {
+
+        private final ListProperty<String> includedGroupRegexes;
+
+        @Inject
+        public Deps(ObjectFactory objects) {
+            this.includedGroupRegexes = objects.listProperty(String.class);
+        }
+
+        public ListProperty<String> getIncludedGroupRegexes() {
+            return this.includedGroupRegexes;
+        }
+
+        @SuppressWarnings("unused")
+        public void setIncludedGroupRegexes(List<String> includedGroupRegexes) {
+            this.includedGroupRegexes.set(includedGroupRegexes);
+        }
+
+    }
 
 }
