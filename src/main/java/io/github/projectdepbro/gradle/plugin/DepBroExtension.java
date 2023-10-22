@@ -16,17 +16,19 @@
 
 package io.github.projectdepbro.gradle.plugin;
 
-import io.github.projectdepbro.gradle.plugin.task.Dependencies4DepBroTask;
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.ListProperty;
 
-@SuppressWarnings("unused")
-public class DepBroPlugin implements Plugin<Project> {
+public interface DepBroExtension {
 
-    @Override
-    public void apply(Project project) {
-        DepBroExtension.create(project);
-        Dependencies4DepBroTask.register(project);
+    String NAME = "depbro";
+
+    static void create(Project project) {
+        ExtensionContainer extensions = project.getExtensions();
+        extensions.create(NAME, DepBroExtension.class);
     }
+
+    ListProperty<String> getIncludedGroupRegexes();
 
 }
