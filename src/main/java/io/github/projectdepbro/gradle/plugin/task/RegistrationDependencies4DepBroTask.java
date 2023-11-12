@@ -85,10 +85,10 @@ public class RegistrationDependencies4DepBroTask extends DefaultTask {
         String group = project.getGroup().toString();
         String name = project.getName();
         String version = project.getVersion().toString();
-        String url = depbroUrl + "/api/registrations" +
-                     "/" + group +
-                     "/" + name +
-                     "/" + version;
+        String url = depbroUrl + "/api/" +
+                     "groups/" + group +
+                     "artifacts/" + name +
+                     "versions/" + version;
         try {
             return new URI(url);
         } catch (URISyntaxException e) {
